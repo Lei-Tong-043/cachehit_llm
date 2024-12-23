@@ -2,4 +2,4 @@
 
 Tinyllm.
 
-It`s my Graduation Project.
+~~It`s my Graduation Project.~~
