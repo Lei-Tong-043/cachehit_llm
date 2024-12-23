@@ -1,6 +1,12 @@
-#include <iostream>
+#include <gtest/gtest.h>
+#include <base/alloc.h>
+#include <string>
 
+using namespace cachehitML;
 
-int main(){
-    return 0;
+//test DeviceAllocator::MLcopy
+TEST(DeviceAllocator, MLMemcpy){
+    float *cpu;
+    float *gpu;
+    DeviceAlloctor::MLalloc
 }
