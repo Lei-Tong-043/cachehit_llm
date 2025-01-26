@@ -1,36 +1,30 @@
-#include <base/alloc.h>
+#include "base/alloc.h"
 #include <cuda_runtime.h>
 
 namespace cachehitML{
 // all kind memcpy
 void DeviceAllocator::MLmemcpy(void* dest_ptr, const void* src_ptr, size_t byte_size, 
-                            MemcpyKind memcpy_kind, void* stream, bool need_syncs) const{
+                            MemcpyKind memcpy_kind, void* stream, bool need_sync) const{
     // check arg vaild
-    CHECK_NE(src_pet, nullptr);
+    CHECK_NE(src_ptr, nullptr);
     CHECK_NE(dest_ptr, nullptr);    
     if (!byte_size){
         return ;
     }
     //memcpy logic
-    cudastream_t stream_ = nullptr;
+    cudaStream_t stream_ = nullptr;
     if (stream){
-        stream_ =static_cast<CUstream_st*>(stream);
+        stream_ = static_cast<CUstream_st*>(stream);
     }
     if (memcpy_kind == MemcpyKind::MemcpyCPU2CPU){
-        std::memcpu(dest_ptr, src_ptr, byte_size);
+        std::memcpy(dest_ptr, src_ptr, byte_size);
     }else if(memcpy_kind == MemcpyKind::MemcpyCPU2CUDA){
         if(!stream_){
             cudaMemcpy(dest_ptr, src_ptr, byte_size, cudaMemcpyHostToDevice);
         }else{
             cudaMemcpyAsync(dest_ptr, src_ptr, byte_size, cudaMemcpyHostToDevice, stream_);
         }
-    }else if (memcpy_kind == MemcpyKind::MemcpyCUDA2CUDA){
-        if(!stream_){
-            cudaMemcpy(dest_ptr, src_ptr, byte_size, cudaMemcpyDeviceToDevice);
-        }else{
-            cudaMemcpyAsync(dest_ptr, src_ptr, byte_size, cudaMemcpyDeviceToDevice, stream_);
-        }
-    }else if (memcpy_kind == MemcpyKind::MemcpyCUDA2CUDA){
+    }else if (memcpy_kind == MemcpyKind::MemcpyCUDA2CPU){
         if(!stream_){
             cudaMemcpy(dest_ptr, src_ptr, byte_size, cudaMemcpyDeviceToDevice);
         }else{
@@ -53,7 +47,7 @@ void DeviceAllocator::MLmemcpy(void* dest_ptr, const void* src_ptr, size_t byte_
 // all kind memset zero
 void DeviceAllocator::MLmemset_zero(void* ptr, size_t byte_size, void* stream, bool need_sync){
     CHECK(device_type_ != DeviceType::DEVICE_UNKNOWN);
-    if(device_type_ == DeviceType::DEVICE_X86CPU){
+    if(device_type_ == DeviceType::DEVICE_CPU){
         std::memset(ptr, 0, byte_size);
     }else {
         if (stream){

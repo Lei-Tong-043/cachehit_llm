@@ -1,7 +1,7 @@
 #ifndef CACHEHIT_INCLUDE_BASE_ALLOC_H_
 #define CACHEHIT_INCLUDE_BASE_ALLOC_H_
 
-#include <base.h>
+#include "base.h"
 #include <map>
 #include <memory>
 
@@ -26,7 +26,7 @@ public:
 
     virtual void* MLalloc(size_t byte_size) const =0;
 
-    virtual void MLmemcpy(const void* src_ptr, void* dest_ptr, size_t byte_size,
+    virtual void MLmemcpy(void* dest_ptr, const void* src_ptr, size_t byte_size,
             MemcpyKind memcpy_kind = MemcpyKind::MemcpyCPU2CPU, void* stream = nullptr,
             bool need_sync = false) const;
 
@@ -45,10 +45,10 @@ struct CudaMemBuffer
     CudaMemBuffer() = default;
 
     CudaMemBuffer(void* data, size_t byte_size, bool busy) 
-                : data_(data), byte_size_(byte_size), busy_(busy){}
+                : data_(data), byte_size_(byte_size), busy_(busy){};
 };
 
-class CPUAlloctor : public DeviceAlloctar {
+class CPUAlloctor : public DeviceAllocator {
 public:
     explicit CPUAlloctor();
 
@@ -94,12 +94,12 @@ public:
     }
 private:
     static std::shared_ptr<CUDAAllocator> instance;
-}
+};
 
 class DeviceAllocFactory{
 public:
     static std::shared_ptr<DeviceAllocator> get_instance(cachehitML::DeviceType device_type){
-        if(device_type == cachehitML::DeviceType::DEVICE_X86CPU){
+        if(device_type == cachehitML::DeviceType::DEVICE_CPU){
             return CPUAllocFactory::get_instance();
         }else if(device_type == cachehitML::DeviceType::DEVICE_NVGPU){
             return CUDAAllocFactory::get_instance();
@@ -108,7 +108,7 @@ public:
             return nullptr;
         }
     }
-}
+};
 
 }
 #endif
