@@ -71,7 +71,13 @@
         "filesystem": "cpp",
         "queue": "cpp",
         "span": "cpp",
-        "stack": "cpp"
+        "stack": "cpp",
+        "shared_mutex": "cpp",
+        "__node_handle": "cpp",
+        "__locale": "cpp",
+        "locale": "cpp",
+        "unordered_set": "cpp",
+        "regex": "cpp"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -3,88 +3,101 @@
 
 #include <driver_types.h>
 #include <glog/logging.h>
-#include <armadillo>
 #include <memory.h>
+
+#include <armadillo>
 #include <vector>
+
 #include "base/base.h"
 #include "base/buffer.h"
 
-namespace tensor{
+namespace tensor {
 
-class Tensor{
-public:
-    explicit Tensor() = default;
-    //1d tensor
-    explicit Tensor(cachehitML::DataType data_type, int32_t dim0, bool need_alloc = false, 
-        std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr, void* ptr = nullptr);
-    //2d tensor
-    explicit Tensor(cachehitML::DataType data_type, int32_t dim0, int32_t dim1, bool need_alloc = false, 
-        std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr, void* ptr = nullptr);
-    //3d tensor
-    explicit Tensor(cachehitML::DataType data_type, int32_t dim0, int32_t dim1, int32_t dim2, bool need_alloc = false, 
-        std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr, void* ptr = nullptr);
-    //4d tensor
-    explicit Tensor(cachehitML::DataType data_type, int32_t dim0, int32_t dim1, int32_t dim2,int32_t dim3, bool need_alloc = false, 
-        std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr, void* ptr = nullptr);
+class Tensor {
+ public:
+  explicit Tensor() = default;
+  // 1d tensor
+  explicit Tensor(cachehitML::DataType data_type, int32_t dim0,
+                  bool need_alloc = false,
+                  std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr,
+                  void* ptr = nullptr);
+  // 2d tensor
+  explicit Tensor(cachehitML::DataType data_type, int32_t dim0, int32_t dim1,
+                  bool need_alloc = false,
+                  std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr,
+                  void* ptr = nullptr);
+  // 3d tensor
+  explicit Tensor(cachehitML::DataType data_type, int32_t dim0, int32_t dim1,
+                  int32_t dim2, bool need_alloc = false,
+                  std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr,
+                  void* ptr = nullptr);
+  // 4d tensor
+  explicit Tensor(cachehitML::DataType data_type, int32_t dim0, int32_t dim1,
+                  int32_t dim2, int32_t dim3, bool need_alloc = false,
+                  std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr,
+                  void* ptr = nullptr);
 
-    void to_cpu();
+  void to_cpu();
 
-    void to_cuda(cudaStream_t stream = nullptr);
+  void to_cuda(cudaStream_t stream = nullptr);
 
-    bool is_empty() const;
+  bool is_empty() const;
 
-    void init_buffer(std::shared_ptr<cachehitML::DeviceAllocator> alloc, cachehitML::DataType data_type, bool need_alloc, void* ptr);
+  void init_buffer(std::shared_ptr<cachehitML::DeviceAllocator> alloc,
+                   cachehitML::DataType data_type, bool need_alloc, void* ptr);
 
-    template <typename T>
-    T* ptr();
+  template <typename T>
+  T* ptr();
 
-    template <typename T>
-    const T* ptr() const;
+  template <typename T>
+  const T* ptr() const;
 
-    void reshape(const std::vector<int32_t>& dims);
+  void reshape(const std::vector<int32_t>& dims);
 
-    std::shared_ptr<cachehitML::Buffer> get_buffer() const;
-    
-    size_t size() const;
+  std::shared_ptr<cachehitML::Buffer> get_buffer() const;
 
-    size_t byte_size() const;
+  size_t size() const;
 
-    int32_t dims_size() const;
+  size_t byte_size() const;
 
-    cachehitML::DataType data_type() const;
+  int32_t dims_size() const;
 
-    int32_t get_dim(int32_t idx) const;
+  cachehitML::DataType data_type() const;
 
-    const std::vector<int32_t>& dims() const;
+  int32_t get_dim(int32_t idx) const;
 
-    std::vector<size_t> strides() const;
+  const std::vector<int32_t>& dims() const;
 
-    void reset(cachehitML::DataType data_type, const std::vector<int32_t>& dims);
+  std::vector<size_t> strides() const;
 
-    void set_device_type(cachehitML::DeviceType device_type) const;
+  void reset(cachehitML::DataType data_type, const std::vector<int32_t>& dims);
 
-    cachehitML::DeviceType device_type() const;
+  void set_device_type(cachehitML::DeviceType device_type) const;
 
-    bool allocate(std::shared_ptr<cachehitML::DeviceAllocator> allocator, bool need_alloc = false);
+  cachehitML::DeviceType device_type() const;
 
-    template <typename T>
-    T* ptr(int64_t index);
+  bool allocate(std::shared_ptr<cachehitML::DeviceAllocator> allocator,
+                bool need_alloc = false);
 
-    template <typename T>
-    const T* ptr(int64_t index) const;
+  template <typename T>
+  T* ptr(int64_t index);
 
-    template <typename T>
-    T& index(int64_t offset) ;
+  template <typename T>
+  const T* ptr(int64_t index) const;
 
-    template <typename T>
-    const T& index(int64_t offset) const;
+  template <typename T>
+  T& index(int64_t offset);
 
-    tensor::Tensor clone() const;
-private:
-    size_t size_ = 0;
-    std::vector<int32_t> dims_;
-    std::shared_ptr<cachehitML::Buffer> buffer_;
-    cachehitML::DataType data_type_ = cachehitML::DataType::DATA_TYPE_UNKNOWN;
+  template <typename T>
+  const T& index(int64_t offset) const;
+
+  tensor::Tensor clone() const;
+
+ private:
+  size_t size_ = 0;
+  std::vector<int32_t> dims_;
+  std::shared_ptr<cachehitML::Buffer> buffer_;
+  cachehitML::DataType data_type_ = cachehitML::DataType::DATA_TYPE_UNKNOWN;
 };
 
 template <typename T>
@@ -103,36 +116,37 @@ const T& Tensor::index(int64_t offset) const {
   return val;
 }
 
-
 template <typename T>
-T* Tensor::ptr(){
-    if(!buffer_){
-        return nullptr;
-    }
-    return reinterpret_cast<T*>(buffer_->ptr());
+T* Tensor::ptr() {
+  if (!buffer_) {
+    return nullptr;
+  }
+  return reinterpret_cast<T*>(buffer_->ptr());
 }
 
 template <typename T>
-const T* Tensor::ptr() const{
-    if(!buffer_){
-        return nullptr;
-    }
-    return reinterpret_cast<T*>(reinterpret_cast<T*>(buffer_->ptr()));
+const T* Tensor::ptr() const {
+  if (!buffer_) {
+    return nullptr;
+  }
+  return reinterpret_cast<T*>(reinterpret_cast<T*>(buffer_->ptr()));
 }
 
 template <typename T>
-T* Tensor::ptr(int64_t index){
-    CHECK(buffer_ != nullptr && buffer_->ptr() != nullptr)
-        << "The data area buffer of this tensor is empty or it points to a null pointer.";
-    return const_cast<T*>(reinterpret_cast<const T*>(buffer_->ptr())) + index;
+T* Tensor::ptr(int64_t index) {
+  CHECK(buffer_ != nullptr && buffer_->ptr() != nullptr)
+      << "The data area buffer of this tensor is empty or it points to a null "
+         "pointer.";
+  return const_cast<T*>(reinterpret_cast<const T*>(buffer_->ptr())) + index;
 }
 
 template <typename T>
-const T* Tensor::ptr(int64_t index) const{
-    CHECK(buffer_ != nullptr && buffer_->ptr() != nullptr)
-      << "The data area buffer of this tensor is empty or it points to a null pointer.";
+const T* Tensor::ptr(int64_t index) const {
+  CHECK(buffer_ != nullptr && buffer_->ptr() != nullptr)
+      << "The data area buffer of this tensor is empty or it points to a null "
+         "pointer.";
   return reinterpret_cast<const T*>(buffer_->ptr()) + index;
 }
-}
+}  // namespace tensor
 
-#endif 
+#endif

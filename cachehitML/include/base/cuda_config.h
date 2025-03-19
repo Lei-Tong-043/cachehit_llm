@@ -1,19 +1,15 @@
-// #ifndef CACHEHITM_INCLUDE_BASE_CUDA_CONFIG_H_
-// #define CACHEHITM_INCLUDE_BASE_CUDA_CONFIG_H_
+#pragma once
 
-// #include <cublas_v2.h>
-// #include <cuda_runtime_api.h>
+#include <cublas_v2.h>
+#include <cuda_runtime.h>
 
-// namespace kernel{
-//   struct CudaConfig
-//   {
-//     cudaStream_t stream = nullptr;
-//     ~CudaConfig(){
-//       if (stream) {
-//         cudaStreamDestory(stream);
-//       }
-//     }
-//   };
-// }
-
-// #endif
+namespace op {
+struct CudaConfig {
+  cudaStream_t stream = nullptr;
+  ~CudaConfig() {
+    if (stream) {
+      cudaStreamDestroy(stream);
+    }
+  }
+};
+}  // namespace op

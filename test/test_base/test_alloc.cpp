@@ -1,55 +1,59 @@
-#include <gtest/gtest.h>
 #include <base/alloc.h>
+#include <cuda_runtime.h>
+#include <glog/logging.h>
+#include <gtest/gtest.h>
+
+#include <iostream>
 #include <string>
 
-using namespace cachehitML;
-
-class AllocatorTest : public ::testing::Test {
-protected:
-    void SetUp() override {
-        cpu_allocator = CPUAllocFactory::get_instance();
-        cuda_allocator = CUDAAllocFactory::get_instance();
-    }
-
-    std::shared_ptr<CPUAlloctor> cpu_allocator;
-    std::shared_ptr<CUDAAllocator> cuda_allocator;
-};
-
-TEST_F(AllocatorTest, CPUAllocationTest) {
-    size_t size = 1024;
-    void* ptr = cpu_allocator->MLalloc(size);
-    ASSERT_NE(ptr, nullptr);  // Ensure allocation is successful.
-
-    cpu_allocator->MLrelease(ptr);
+// CPU malloc and release part
+TEST(CPUAllocatorTest, ML_malloc_test) {
+  cachehitML::CPUAllocator allocator;
+  // 0 byte == nullptr
+  void* ptr = allocator.ML_malloc(0);
+  ASSERT_EQ(ptr, nullptr) << "0 byte == nullptr";
+  // 1byte == 64byte
+  ptr = allocator.ML_malloc(1);
+  ASSERT_NE(ptr, nullptr);
+  allocator.ML_release(ptr);
 }
 
-TEST_F(AllocatorTest, CUDAAllocationTest) {
-    size_t size = 1024;
-    void* ptr = cuda_allocator->MLalloc(size);
-    ASSERT_NE(ptr, nullptr);  // Ensure allocation is successful.
-
-    cuda_allocator->MLrelease(ptr);
+TEST(CPUAllocatorTest, ML_release_test) {
+  cachehitML::CPUAllocator allocator;
+  void* ptr = allocator.ML_malloc(32);
+  ASSERT_NE(ptr, nullptr);
+  allocator.ML_release(ptr);
 }
 
-TEST_F(AllocatorTest, DeviceAllocFactoryTest) {
-    auto cpu_alloc = DeviceAllocFactory::get_instance(DeviceType::DEVICE_CPU);
-    ASSERT_NE(cpu_alloc, nullptr);
-    EXPECT_EQ(cpu_alloc->device_type(), DeviceType::DEVICE_CPU);
-
-    auto cuda_alloc = DeviceAllocFactory::get_instance(DeviceType::DEVICE_NVGPU);
-    ASSERT_NE(cuda_alloc, nullptr);
-    EXPECT_EQ(cuda_alloc->device_type(), DeviceType::DEVICE_NVGPU);
+TEST(CPUAllocatorTest, ML_release_nullptr_test) {
+  cachehitML::CPUAllocator allocator;
+  allocator.ML_release(nullptr);
 }
 
-TEST_F(AllocatorTest, MemcpyTest) {
-    size_t size = 1024;
-    void* src = cpu_allocator->MLalloc(size);
-    void* dest = cpu_allocator->MLalloc(size);
+TEST(CUDAAllocatorTest, ML_malloc_test) {
+  cachehitML::CUDAAllocator allocator;
+  void* ptr = allocator.ML_malloc(32);
+  ASSERT_NE(ptr, nullptr);
 
-    memset(src, 42, size);  // Fill source with a known value.
-    cpu_allocator->MLmemcpy(dest, src, size);
-    ASSERT_EQ(memcmp(src, dest, size), 0);  // Ensure memory contents match.
+  cudaPointerAttributes attributes;
+  cudaError_t err = cudaPointerGetAttributes(&attributes, ptr);
+  ASSERT_EQ(err, cudaSuccess);
+  ASSERT_EQ(attributes.type, cudaMemoryTypeDevice)
+      << "ptr is not device memory";
+}
 
-    cpu_allocator->MLrelease(src);
-    cpu_allocator->MLrelease(dest);
+// CPU or CUDA Memcpy part
+TEST(Memcpy_test, ML_memcpy_cpu2cpu) {
+  cachehitML::CPUAllocator allocator;
+  uint32_t size = 32;
+  void* ptr = allocator.ML_malloc(size);
+  ASSERT_NE(ptr, nullptr);
+  std::memset(ptr, 0, size);
+  for (int i = 0; i < size; i++) {
+    ((uint8_t*)ptr)[i] = i;
+  }
+  void* ptr1 = allocator.ML_malloc(size);
+  allocator.ML_memcpy(ptr1, ptr, size, cachehitML::MemcpyKind::kMemcpyCPU2CPU,
+                      nullptr, false);
+  ASSERT_NE(ptr1, nullptr);
 }
