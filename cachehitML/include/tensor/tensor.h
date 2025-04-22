@@ -97,7 +97,7 @@ class Tensor {
   size_t size_ = 0;
   std::vector<int32_t> dims_;
   std::shared_ptr<cachehitML::Buffer> buffer_;
-  cachehitML::DataType data_type_ = cachehitML::DataType::DATA_TYPE_UNKNOWN;
+  cachehitML::DataType data_type_ = cachehitML::DataType::kUnkonwn;
 };
 
 template <typename T>

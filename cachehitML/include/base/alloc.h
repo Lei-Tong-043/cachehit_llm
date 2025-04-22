@@ -20,8 +20,7 @@ enum class MemcpyKind {
 class DeviceAllocator {
  public:
   // avoid implicit conversion by other type of data
-  explicit DeviceAllocator(DeviceType device_type)
-      : device_type_(device_type) {}
+  explicit DeviceAllocator(DeviceType device_type) : device_type_(device_type) {}
 
   virtual DeviceType device_type() const { return device_type_; }
 
@@ -33,8 +32,7 @@ class DeviceAllocator {
                          MemcpyKind memcpy_kind = MemcpyKind::kMemcpyCPU2CPU,
                          void *stream = nullptr, bool need_sync = false) const;
 
-  virtual void ML_memset_zero(void *ptr, size_t byte_size, void *stream,
-                              bool need_sync = false);
+  virtual void ML_memset_zero(void *ptr, size_t byte_size, void *stream, bool need_sync = false);
 
   // virtual ~DeviceAllocator() = default;
 
