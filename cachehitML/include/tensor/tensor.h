@@ -17,8 +17,7 @@ class Tensor {
  public:
   explicit Tensor() = default;
   // 1d tensor
-  explicit Tensor(cachehitML::DataType data_type, int32_t dim0,
-                  bool need_alloc = false,
+  explicit Tensor(cachehitML::DataType data_type, int32_t dim0, bool need_alloc = false,
                   std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr,
                   void* ptr = nullptr);
   // 2d tensor
@@ -27,13 +26,18 @@ class Tensor {
                   std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr,
                   void* ptr = nullptr);
   // 3d tensor
-  explicit Tensor(cachehitML::DataType data_type, int32_t dim0, int32_t dim1,
-                  int32_t dim2, bool need_alloc = false,
+  explicit Tensor(cachehitML::DataType data_type, int32_t dim0, int32_t dim1, int32_t dim2,
+                  bool need_alloc = false,
                   std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr,
                   void* ptr = nullptr);
   // 4d tensor
-  explicit Tensor(cachehitML::DataType data_type, int32_t dim0, int32_t dim1,
-                  int32_t dim2, int32_t dim3, bool need_alloc = false,
+  explicit Tensor(cachehitML::DataType data_type, int32_t dim0, int32_t dim1, int32_t dim2,
+                  int32_t dim3, bool need_alloc = false,
+                  std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr,
+                  void* ptr = nullptr);
+  // n-d tensor
+  explicit Tensor(cachehitML::DataType data_type, std::vector<int32_t> dims,
+                  bool need_alloc = false,
                   std::shared_ptr<cachehitML::DeviceAllocator> alloc = nullptr,
                   void* ptr = nullptr);
 
@@ -70,14 +74,15 @@ class Tensor {
 
   std::vector<size_t> strides() const;
 
+  bool assign(std::shared_ptr<cachehitML::Buffer> buffer);
+
   void reset(cachehitML::DataType data_type, const std::vector<int32_t>& dims);
 
   void set_device_type(cachehitML::DeviceType device_type) const;
 
   cachehitML::DeviceType device_type() const;
 
-  bool allocate(std::shared_ptr<cachehitML::DeviceAllocator> allocator,
-                bool need_alloc = false);
+  bool allocate(std::shared_ptr<cachehitML::DeviceAllocator> allocator, bool need_alloc = false);
 
   template <typename T>
   T* ptr(int64_t index);
@@ -97,8 +102,9 @@ class Tensor {
   size_t size_ = 0;
   std::vector<int32_t> dims_;
   std::shared_ptr<cachehitML::Buffer> buffer_;
-  cachehitML::DataType data_type_ = cachehitML::DataType::DATA_TYPE_UNKNOWN;
+  cachehitML::DataType data_type_ = cachehitML::DataType::kUnkonwn;
 };
+
 
 template <typename T>
 T& Tensor::index(int64_t offset) {

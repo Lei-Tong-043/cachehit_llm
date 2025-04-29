@@ -18,8 +18,7 @@ void *CPUAllocator::ML_malloc(size_t byte_size) const {
   }
   void *ptr = nullptr;
 #ifdef CACHEHIT_HAVE_ALIGNED_ALLOC
-  const size_t alignment =
-      (byte_size >= size_t(1024)) ? size_t(128) : size_t(64);
+  const size_t alignment = (byte_size >= size_t(1024)) ? size_t(128) : size_t(64);
   ptr = std::aligned_alloc(alignment, byte_size);
 #else
   ptr = std::malloc(byte_size);
@@ -34,4 +33,5 @@ void CPUAllocator::ML_release(void *ptr) const {
   }
 }
 
+std::shared_ptr<CPUAllocator> CPUAllocatorFactory::instance_;
 }  // namespace cachehitML

@@ -14,7 +14,7 @@ static size_t reduce_dimension(T begin, T end, Tp init) {
   if (begin >= end) {
     return 0;
   }
-  size_t size = std::accumulate(begin, end, init, std::mutiplies<>());
+  size_t size = std::accumulate(begin, end, init, std::multiplies<>());
   return size;
 }
 
@@ -31,9 +31,8 @@ static size_t data_type_size(ML::DataType data_type) {
   }
 }
 
-Tensor::Tensor(ML::DataType data_type, int32_t dim0, int32_t dim1,
-               bool need_alloc, std::shared_ptr<ML::DeviceAllocator> alloc,
-               void* ptr)
+Tensor::Tensor(ML::DataType data_type, int32_t dim0, bool need_alloc,
+               std::shared_ptr<ML::DeviceAllocator> alloc, void* ptr)
     : data_type_(data_type) {
   dims_.push_back(dim0);
   size_ = dim0;
@@ -48,12 +47,11 @@ Tensor::Tensor(ML::DataType data_type, int32_t dim0, int32_t dim1,
   }
 }
 
-Tensor::Tensor(ML::DataType data_type, int32_t dim0, int32_t dim1,
-               bool need_alloc, std::shared_ptr<ML::DeviceAllocator> alloc,
-               void* ptr)
+Tensor::Tensor(ML::DataType data_type, int32_t dim0, int32_t dim1, bool need_alloc,
+               std::shared_ptr<ML::DeviceAllocator> alloc, void* ptr)
     : data_type_(data_type) {
-  dims.push_back(dim0);
-  dims.push_back(dim1);
+  dims_.push_back(dim0);
+  dims_.push_back(dim1);
   size_ = dim0 * dim1;
   if (need_alloc && alloc) {
     allocate(alloc);
@@ -66,9 +64,8 @@ Tensor::Tensor(ML::DataType data_type, int32_t dim0, int32_t dim1,
   }
 }
 
-Tensor::Tensor(ML::DataType data_type, int32_t dim0, int32_t dim1, int32_t dim2,
-               bool need_alloc, std::shared_ptr<ML::DeviceAllocator> alloc,
-               void* ptr)
+Tensor::Tensor(ML::DataType data_type, int32_t dim0, int32_t dim1, int32_t dim2, bool need_alloc,
+               std::shared_ptr<ML::DeviceAllocator> alloc, void* ptr)
     : data_type_(data_type) {
   dims_.push_back(dim0);
   dims_.push_back(dim1);
@@ -81,11 +78,10 @@ Tensor::Tensor(ML::DataType data_type, int32_t dim0, int32_t dim1, int32_t dim2,
   }
 }
 
-Tensor::Tensor(ML::DataType data_type, std::vector<int32_t> dims,
-               bool need_alloc, std::shared_ptr<ML::DeviceAllocator> alloc,
-               void* ptr)
+Tensor::Tensor(ML::DataType data_type, std::vector<int32_t> dims, bool need_alloc,
+               std::shared_ptr<ML::DeviceAllocator> alloc, void* ptr)
     : dims_(std::move(dims)), data_type_(data_type) {
-  size_ = reduce_dimension(dims_.begin(), dim_.end(), 1);
+  size_ = reduce_dimension(dims_.begin(), dims_.end(), 1);
   if (need_alloc && alloc) {
     allocate(alloc);
   } else {
@@ -119,7 +115,7 @@ void Tensor::to_cpu() {
   } else if (device_type == ML::DeviceType::kDeviceCUDA) {
     size_t byte_size = this->byte_size();
     auto cpu_alloc = ML::CPUAllocatorFactory::get_instance();
-    auto cpu_buffer = std::shared_ptr<ML::Buffer>(byte_size, cpu_alloc);
+    auto cpu_buffer = std::make_shared<ML::Buffer>(byte_size, cpu_alloc);
     this->buffer_ = cpu_buffer;
   } else {
     LOG(INFO) << "The device type of the tensor is already cpu.";
@@ -136,7 +132,7 @@ int32_t Tensor::get_dim(int32_t idx) const {
 
 ML::DeviceType Tensor::device_type() const {
   if (!buffer_) {
-    return ML::DeviceType::kDeviceUnknwon;
+    return ML::DeviceType::kDeviceUnknown;
   }
   return buffer_->device_type();
 }
@@ -162,8 +158,7 @@ bool Tensor::assign(std::shared_ptr<ML::Buffer> buffer) {
   return true;
 }
 
-bool Tensor::allocate(std::shared_ptr<ML::DeviceAllocator> allocator,
-                      bool need_alloc) {
+bool Tensor::allocate(std::shared_ptr<ML::DeviceAllocator> allocator, bool need_alloc) {
   if (!allocator) {
     LOG(ERROR) << "The allocator parameter in the allocate funtion is nullptr!";
     return false;
@@ -171,13 +166,12 @@ bool Tensor::allocate(std::shared_ptr<ML::DeviceAllocator> allocator,
 
   size_t byte_size = this->byte_size();
   if (!byte_size) {
-    LOG(ERROR)
-        << "The byte_size parameter in the allocate funtion is equal to 0!";
+    LOG(ERROR) << "The byte_size parameter in the allocate funtion is equal to 0!";
     return false;
   }
 
   if (buffer_ && byte_size <= buffer_->byte_size()) {
-    if (!need_realloc) {
+    if (!need_alloc) {
       return true;
     }
   }
@@ -218,35 +212,35 @@ void Tensor::reshape(const std::vector<int32_t>& dims) {
   }
 
   if (size > size_) {
-    auto new_buffer = std::make_shared<ML::Buffer>(
-        size * ML::DataTypeSize(this->data_type_), buffer->allocator());
+    auto new_buffer = std::make_shared<ML::Buffer>(size * ML::DataTypeSize(this->data_type_),
+                                                   buffer_->allocator());
     CHECK(new_buffer->allocate());
-    new_buffer_->copy_from(buffer_.get());
+    new_buffer->copy_from(buffer_.get());
     this->buffer_ = new_buffer;
   }
-  this->dims_ =dims;
-  this->size_ =size;
+  this->dims_ = dims;
+  this->size_ = size;
 }
 
-std::shared_ptr<ML::Buffer> Tensor::get_buffer() const { return buffer_;}
+std::shared_ptr<ML::Buffer> Tensor::get_buffer() const { return buffer_; }
 
-Tensor Tensor::clone(){
+Tensor Tensor::clone() const {
   Tensor new_tensor = *this;
   size_t byte_size = this->byte_size();
 
-  auto allocator =  buffer_->allocatorA();
+  auto allocator = buffer_->allocator();
   new_tensor.buffer_ = std::make_shared<ML::Buffer>(byte_size, allocator);
-  new_tensor.buffer_->copy_from(buffer.get());
+  new_tensor.buffer_->copy_from(buffer_.get());
   return new_tensor;
 }
 
-size_t Tensor::byte_size() const {return this->size()* DataTypeSize(data_type_);}
+size_t Tensor::byte_size() const { return this->size() * DataTypeSize(data_type_); }
 
-std::vector<size_t> Tensor::strides() const{
+std::vector<size_t> Tensor::strides() const {
   std::vector<size_t> strides;
-  if(!dims.empty()){
-    for(int32_t i =0; i<dims_.size() -1 ;++i){
-      size_t stride = reduce_dimension(dims_.begin() + i +1, dims.edm(),1);
+  if (!dims_.empty()) {
+    for (int32_t i = 0; i < dims_.size() - 1; ++i) {
+      size_t stride = reduce_dimension(dims_.begin() + i + 1, dims_.end(), 1);
       strides.push_back(stride);
     }
     strides.push_back(1);
@@ -254,15 +248,15 @@ std::vector<size_t> Tensor::strides() const{
   return strides;
 }
 
-bool Tensor::is_empty() const{
-  return size_ == 0|| buffer_ ==nullptr|| buffer_->ptr() == nullptr;
+bool Tensor::is_empty() const {
+  return size_ == 0 || buffer_ == nullptr || buffer_->ptr() == nullptr;
 }
 
-void Tensor::init_buffer(std::shared_ptr<ML::DeviceAllocator> alloc,
-                         ML::DataType data_type, bool need_alloc, void* p) {
+void Tensor::init_buffer(std::shared_ptr<ML::DeviceAllocator> alloc, ML::DataType data_type,
+                         bool need_alloc, void* p) {
   if (!need_alloc && !alloc) {
-    std::shared_ptr<ML::Buffer> buffer_ = std::make_shared<ML::Buffer>(
-        data_type_size(data_type) * size_, nullptr, p, true);
+    std::shared_ptr<ML::Buffer> buffer =
+        std::make_shared<ML::Buffer>(data_type_size(data_type) * size_, nullptr, p, true);
     this->buffer_ = buffer;
   } else {
     allocate(alloc, true);

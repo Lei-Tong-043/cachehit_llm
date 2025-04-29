@@ -37,11 +37,11 @@ find_package(glog REQUIRED)       # Google Logging (glog)
 # find_package(Armadillo REQUIRED)  # Armadillo
 
 # Manually set Armadillo paths if not found
-# if (NOT ARMADILLO_FOUND)
-#     message(WARNING "Armadillo not found, manually setting paths...")
-#     set(ARMADILLO_INCLUDE_DIRS "/nanchong/tonglei/llm_infer/software/armadillo-14.2.2/include")
-#     set(ARMADILLO_LIBRARIES "/nanchong/tonglei/llm_infer/software/armadillo-14.2.2/build/libarmadillo.so")
-# endif()
+if (NOT ARMADILLO_FOUND)
+    message(WARNING "Armadillo not found, manually setting paths...")
+    set(ARMADILLO_INCLUDE_DIRS "/home/tonglei/armadillo_local_install/include")
+    set(ARMADILLO_LIBRARIES "/home/tonglei/armadillo_local_install/lib/libarmadillo.so")
+endif()
 
 # Collect source files from frontend directories
 aux_source_directory(cachehitML/src/base         BASE_DIR)
@@ -75,8 +75,7 @@ target_link_libraries(llama
   # Armadillo               # Armadillo
   # sentencepiece           # SentencePiece
   glog::glog              # Google Logging (glog)
-  gtest gtest_main        # Google Test
-  pthread                 # pthread
+  # gtest gtest_main        # Google Test  pthread                 # pthread
   cudart                  # CUDA runtime
 )
 
@@ -88,6 +87,8 @@ target_include_directories(llama PUBLIC
   ${ARMADILLO_INCLUDE_DIRS}  # Armadillo headers
   ${glog_INCLUDE_DIR}        # Google Logging (glog) headers
   ${PROJECT_SOURCE_DIR}/cachehitML/include  # Project headers
+  ${PROJECT_SOURCE_DIR}/cachehitML/src/op   # op headers
+  ${PROJECT_SOURCE_DIR}/cachehitML/src/op/backend # op/backend headers
   ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}  # CUDA headers
 )
 
