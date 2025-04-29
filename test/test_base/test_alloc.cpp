@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <iostream>
-#include <string>
+#include <cstring>
 
 // CPU malloc and release part
 TEST(CPUAllocatorTest, ML_malloc_test) {

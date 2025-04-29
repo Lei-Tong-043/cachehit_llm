@@ -1,5 +1,5 @@
 #include "base/alloc.h"
-
+#include <cstring>
 #include <cuda_runtime.h>
 #include <cuda_runtime_api.h>
 namespace cachehitML {
